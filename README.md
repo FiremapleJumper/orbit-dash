@@ -2,7 +2,7 @@
 
 Play: https://firemaplejumper.github.io/orbit-dash/
 
-A browser wave-survival game with fifty weapons, tiers I–V, up to six equipped weapons, fuel-powered boost, endless scaling waves, and uncapped ship upgrades.
+A browser wave-survival game with two hundred weapons, tiers I–V, up to six equipped weapons, fuel-powered boost, endless scaling waves, and uncapped ship upgrades.
 
 ## Controls
 
