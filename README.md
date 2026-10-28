@@ -2,13 +2,14 @@
 
 Play: https://firemaplejumper.github.io/orbit-dash/
 
-A browser wave-survival game with two hundred weapons, tiers I–V, up to six equipped weapons, fuel-powered boost, endless scaling waves, and uncapped ship upgrades.
+A browser wave-survival game with two hundred weapons, tiers I–V, up to six equipped weapons, six ship classes, stackable accessories with tradeoffs, fullscreen play, fuel-powered boost, endless scaling waves, and uncapped ship upgrades.
 
 ## Controls
 
 - WASD / arrows / touch drag: fly.
 - Tap Space for a short boost; hold for sustained thrust; release to refuel.
 - P / Esc: pause solo or local play.
+- F / fullscreen button: fullscreen. Hangar: ship, starting accessory, paint and engine trail.
 - Controller: left stick, B / RT to boost, A to confirm, Start for the menu.
 - Local P2: arrow keys + Right Shift. One controller is assigned to P2.
 
