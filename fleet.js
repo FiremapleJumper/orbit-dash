@@ -49,5 +49,6 @@ ctx.shadowColor=color;ctx.shadowBlur=boost?20:7;ctx.beginPath();s.points.forEach
 ctx.fillStyle=engine;ctx.beginPath();ctx.moveTo(-4,12);ctx.lineTo(0,21+Math.sin(time*30)*3+(boost?25:0));ctx.lineTo(4,12);ctx.closePath();ctx.fill();if(s.id==='bulwark'||s.id==='interceptor')for(const x of [-10,10]){ctx.beginPath();ctx.moveTo(x-2,13);ctx.lineTo(x,boost?35:23);ctx.lineTo(x+2,13);ctx.closePath();ctx.fill();}
 if(p.accessory==='crown'){ctx.fillStyle='#f8d77e';ctx.beginPath();ctx.moveTo(-9,-23);ctx.lineTo(-11,-32);ctx.lineTo(-4,-28);ctx.lineTo(0,-35);ctx.lineTo(4,-28);ctx.lineTo(11,-32);ctx.lineTo(9,-23);ctx.closePath();ctx.fill();}ctx.restore();}
 function summary(index=0){const p=get(index),s=ship(p.ship);return `<button class="fleet-summary secondary" data-hangar="${index}">${icon(s.id,find(paints,p.paint).color)}<span><b>${s.name}</b> · ${find(accessories,p.accessory).name}</span><span>Customize ↗</span></button>`;}
-window.OrbitFleet={ships,accessories,paints,trails,ship,defaults,sanitize,get,save,pilot,icon,draw,summary,modifiers,applyItems,drive,adjustWeapon,offers,itemCost,buyItem,itemHTML};
+const ramWeapon={id:-2,name:'Ram-only',type:'ram',label:'Boost impact',icon:'↯',color:'#ffb98b',damage:45,interval:.25,range:30,speed:0,count:1};
+window.OrbitFleet={ramWeapon,ships,accessories,paints,trails,ship,defaults,sanitize,get,save,pilot,icon,draw,summary,modifiers,applyItems,drive,adjustWeapon,offers,itemCost,buyItem,itemHTML};
 })();
