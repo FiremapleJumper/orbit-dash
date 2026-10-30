@@ -1,6 +1,12 @@
 (()=>{'use strict';
 const clone=s=>JSON.parse(JSON.stringify(s));
-const pack=s=>JSON.parse(JSON.stringify(s,(k,v)=>k==='orbitHits'?{}:typeof v==='number'&&!Number.isInteger(v)?Math.round(v*1000)/1000:v));
+const bulletKeys=['id','pid','owner','x','y','vx','vy','r','color','damage','type','life','age','hits','splash','speed','turnAt','returning'];
+const mineKeys=['pid','owner','x','y','r','damage','color','life','arm'];
+const round=value=>typeof value==='number'?Math.round(value*1000)/1000:value;
+const roundObject=object=>{const copy={};for(const key in object)copy[key]=round(object[key]);return copy;};
+const tuple=(object,keys)=>keys.map(key=>round(object[key]??null));
+function pack(s){const out={...roundObject(s),wire:1};out.bullets=(s.bullets||[]).map(b=>tuple(b,bulletKeys));out.mines=(s.mines||[]).map(m=>tuple(m,mineKeys));out.enemies=(s.enemies||[]).map(e=>{const copy=roundObject(e);delete copy.shape;copy.orbitHits={};return copy;});out.drops=(s.drops||[]).map(roundObject);out.effects=(s.effects||[]).map(roundObject);out.pilots=(s.pilots||[]).map(p=>({...roundObject(p),loadout:p.loadout?.map(roundObject)}));return JSON.parse(JSON.stringify(out));}
+function unpack(state){if(state.wire!==1)return state;for(const [name,keys]of [['bullets',bulletKeys],['mines',mineKeys]])state[name]=state[name].map(row=>{const object={};for(let i=0;i<keys.length;i++)if(row[i]!==null&&row[i]!==undefined)object[keys[i]]=row[i];return object;});delete state.wire;return state;}
 // Render-only motion between authoritative updates. Damage, drops, waves and shops
 // are always decided by the host, never by a guest's prediction.
 function advanceView(a,dt,ownPid=null){const s=a.s;if(s.phase!=='playing')return;s.time+=dt;s.roundRemaining=Math.max(0,(s.roundRemaining??window.OrbitEnemies.difficulty(s.wave).duration)-dt);for(const p of s.pilots)if(p.id!==ownPid&&p.alive){p.x=Math.max(16,Math.min(3184,p.x+p.vx*dt));p.y=Math.max(16,Math.min(2384,p.y+p.vy*dt));}for(const e of s.enemies){const p=s.pilots.filter(p=>p.alive).reduce((best,p)=>!best||Math.hypot(p.x-e.x,p.y-e.y)<Math.hypot(best.x-e.x,best.y-e.y)?p:best,null);if(p)window.OrbitEnemies.step(e,p,dt,s.time);e.flash=Math.max(0,e.flash-dt);}for(const b of s.bullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;}s.bullets=s.bullets.filter(b=>b.life>0);for(const f of s.effects)f.life-=dt;s.effects=s.effects.filter(f=>f.life>0);}
@@ -26,9 +32,10 @@ class PeerMesh{
  async ingest(members){if(!this.available||this.closed)return;for(const m of members){if(m.pid===this.pid||!this.peers.has(m.pid)&&!m.connected)continue;for(const signal of m.signals||[]){if(signal.to!==this.pid||this.seen.has(signal.id))continue;this.seen.add(signal.id);if(this.seen.size>512)this.seen.delete(this.seen.values().next().value);let p=this.peers.get(m.pid);try{if(signal.description?.type==='offer'){if(m.pid>this.pid)continue;if(!p||p.link!==signal.link)p=this.make(m.pid,signal.link,false);if(!p)continue;await p.pc.setRemoteDescription(signal.description);for(const c of p.pending)await p.pc.addIceCandidate(c);p.pending=[];await p.pc.setLocalDescription(await p.pc.createAnswer());this.signal(m.pid,p.link,{description:{type:p.pc.localDescription.type,sdp:p.pc.localDescription.sdp}});}else if(signal.description?.type==='answer'&&p?.link===signal.link){await p.pc.setRemoteDescription(signal.description);for(const c of p.pending)await p.pc.addIceCandidate(c);p.pending=[];}else if(signal.candidate){if(!p&&m.pid<this.pid)p=this.make(m.pid,signal.link,false);if(p?.link===signal.link){if(p.pc.remoteDescription)await p.pc.addIceCandidate(signal.candidate);else p.pending.push(signal.candidate);}}}catch{if(p)p.failed=true;}}}}
  ready(pid){return this.peers.get(pid)?.channel?.readyState==='open';}
  fresh(pid){const p=this.peers.get(pid);return this.ready(pid)&&performance.now()-p.received<3000;}
- send(pid,data){const p=this.peers.get(pid);if(!this.ready(pid)||p.channel.bufferedAmount>128000)return false;try{const text=JSON.stringify(data);if(text.length>380000)return false;if(text.length<=12000)p.channel.send(text);else{const id=++p.packet,total=Math.ceil(text.length/12000);for(let i=0;i<total;i++)p.channel.send(JSON.stringify({kind:'chunk',id,i,total,data:text.slice(i*12000,(i+1)*12000)}));}return true;}catch{return false;}}
- broadcast(data){for(const pid of this.peers.keys())this.send(pid,data);}
+ send(pid,data){try{return this.sendEncoded(pid,JSON.stringify(data));}catch{return false;}}
+ sendEncoded(pid,text){const p=this.peers.get(pid);if(!this.ready(pid)||p.channel.bufferedAmount>128000)return false;try{if(text.length>380000)return false;if(text.length<=12000)p.channel.send(text);else{const id=++p.packet,total=Math.ceil(text.length/12000);for(let i=0;i<total;i++)p.channel.send(JSON.stringify({kind:'chunk',id,i,total,data:text.slice(i*12000,(i+1)*12000)}));}return true;}catch{return false;}}
+ broadcast(data){let text;try{text=JSON.stringify(data);}catch{return;}for(const pid of this.peers.keys())this.sendEncoded(pid,text);}
  close(){this.closed=true;for(const p of this.peers.values())p.pc.close();this.peers.clear();this.signals=[];}
 }
-window.OrbitNet={GuestPrediction,PeerMesh,advanceView,pack,clone};
+window.OrbitNet={unpack,GuestPrediction,PeerMesh,advanceView,pack,clone};
 })();

@@ -15,7 +15,7 @@ A browser wave-survival game with two hundred weapons, tiers I–V, up to six eq
 
 ## Multiplayer
 
-Click Multiplayer for 2–4-player same-device or online play. Co-op shares a map and waves, with separate inventories. VS uses separate maps and live opponent mini-views; farthest wave wins and survival time breaks ties.
+Click Multiplayer for 2–4-player same-device or online play. Co-op shares a map and waves, with separate inventories. VS uses separate maps and live opponent mini-views; farthest wave wins and survival time breaks ties. Online rooms include chat: Enter opens it and Esc closes it.
 
 GitHub Pages hosts this static client. Online rooms use the existing game server configured in config.js, shared with the original game at https://orbit-dash-arcade-lr7k.fizzyknoll6.chatgpt.site. No server credentials are included in this repository.
 
